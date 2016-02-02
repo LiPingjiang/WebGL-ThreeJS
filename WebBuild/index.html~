@@ -1,4 +1,4 @@
-<!-- 
+<!--
 Pingjiang's Memo
 ----------------------------------------
 1/1/2016
@@ -45,26 +45,8 @@ need to do:
 		
 
 		<script>
-		/* 
-		1x. build a grid( or can use plane instead, as grid is just for visual assistance)
-		2x. move around the ground
-			2.1x move around the ground 
-			2.2x rotate the ground
-			2.3x move around the rotated ground
-		3. add object to ground
-			3.1 highlight the point in the ground
-			3.2 create "blur" image of the model on mouse move
-			3.3 actually save the model to ground
-		4. manipulate object 
-			4.1 select object
-			4.2 move object to another position
-			4.3 rotate object 
-			4.4 delete object
-		5. add terrain to ground
-		*/
-		
 	
-		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+		if ( !Detector.webgl ) {Detector.addGetWebGLMessage();}
 
 		//constant
 		var WORLD_SIZE = 1000; //side length of the square world
@@ -102,7 +84,7 @@ need to do:
 
 		//all the vasiable objects in the scene
 		var objects = [];//different objects may use same models
-		var objectsInfo = [];//store information of objects including Model name and position
+		var sceneObjects = {};//store information of objects including Model name and position
 		
 		//3D models various
 		//var chooseModel=0;
@@ -116,11 +98,11 @@ need to do:
 		var geometryIndex = 0;
 		var modeIndex = 0;
 
+
 		$( document ).ready(function() {//JQuery
-			// threejs functions
 			init();
 			animate();
-		}
+		});
 
 		
 		
@@ -134,7 +116,7 @@ need to do:
 
 			models = [];
 			modelsInfo = Communicator.getModelsFromDB("Project's name");
-			sceneInfo = Communicator.getSceneFromDB("Project's name");
+			sceneObjects = Communicator.getSceneFromDB("Project's name");
 			loaded_objects_number=0;
 			for ( var i = 0; i < modelsInfo.length; i++) {
 				var model = modelsInfo[i];
@@ -155,14 +137,18 @@ need to do:
 						//make loading scene objects at last to make sure the 3D Object has been loaded
 						//add predefined scene objects
 					
-						for ( var i = 0; i < sceneInfo.length; i++) {
-							var model = sceneInfo[i];
-							var object = models[parseInt(model.index)].clone();
-							object.position.x = model.x;
-							object.position.y = model.y;
-							object.position.z = model.z;
-							scene.add( object );
-
+						
+						for(var property in sceneObjects){
+						    if( sceneObjects.hasOwnProperty(property) ){
+						        var model = sceneObjects[property];
+							    var obj = models[parseInt(model.index)].clone();
+							    obj.name = model.name;
+							    obj.position.x = model.x;
+							    obj.position.y = model.y;
+							    obj.position.z = model.z;
+							    scene.add( obj );
+                                objects.push( obj );    
+						    }
 						}
 					}
 				});
@@ -289,16 +275,7 @@ need to do:
 		
 		function saveProject(){
 			
-			
-			//var objs=[{"name":"binchen"},{"name":"liping"}];
-			
-			//for( var i = 0; i < objects.length; i++){
-				
-			//}
-
-			
-			//ar js=JSON.stringify(objs);
-			alert("Saved!");
+			alert("Saved!"+ JSON.stringify(sceneObjects) );//sceneInfo//objects//sceneObjects
 
 		}
 
@@ -400,20 +377,30 @@ need to do:
 							if (!Date.now) {
 	    						Date.now = function() { return new Date().getTime(); }
 							}
-							temp_object.name = Date.now()%1000;// need to change to increasing number 1,2,3...
+							temp_object.name = Date.now();// need to change to increasing number 1,2,3...
 
 							//temp_object.name = modelsInfo[currentModelIndex].modelName;
-							temp_object.name = temp_object.length;
+							//temp_object.name = sceneObjects.length;
 
 							scene.add( temp_object );
 							objects.push( temp_object );
 							
-							objectsInfo[temp_object.name]={	"modelName":modelsInfo[currentModelIndex].modelName,
+							/*sceneObjects[temp_object.name]={	"modelName":modelsInfo[currentModelIndex].modelName,
 														"name":temp_object.name,
+														"index":currentModelIndex, //index of the model.
 														"x":temp_object.position.x,
 														"y":temp_object.position.y,
 														"z":temp_object.position.z
-														}
+														}*/
+						    sceneObjects[temp_object.name]={	
+						                                "modelName":modelsInfo[currentModelIndex].modelName,
+														"name":temp_object.name,
+														"index":currentModelIndex, //index of the model.
+														"x":temp_object.position.x,
+														"y":temp_object.position.y,
+														"z":temp_object.position.z
+														};
+						    
 						}
 						break;
 					}
@@ -422,13 +409,11 @@ need to do:
 						if ( intersects.length > 0 ) {
 							var intersect = intersects[ 0 ];
 							var obj=intersect.object;
-							obj.name;
 							while( obj.parent != scene && obj.parent!=null ){
 								obj = obj.parent;
-								obj.name;
 							}
 
-							delete objectsInfo[ obj.name ];
+							delete sceneObjects[obj.name];
 							scene.remove( scene.getObjectByName(obj.name) );
 							objects.splice( objects.indexOf( obj ), 1 );
 							

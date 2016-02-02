@@ -120,7 +120,7 @@ need to do:
 			// threejs functions
 			init();
 			animate();
-		});
+		}
 
 		
 		
